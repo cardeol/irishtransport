@@ -190,7 +190,7 @@ FFF;
 
 class DublinBus implements TransportInterface {
 	
-	var $client;
+	private $client;
 
 	public function initClient() {
 		$this->client = new nusoap_client('http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx?WSDL', true,'', '', '', '');
@@ -208,32 +208,16 @@ class DublinBus implements TransportInterface {
 		$ret = $this->initClient();
 		if($ret['status']!="200") return $ret;
 		if(!isset($filter['route'])) {
-			$err['status'] = "502";
-			$err['error'] = "Route must be defined";
-			return $err;
-		}
-		$route = $filter['route'];
-		$result = $this->client->call('GetStopDataByRoute', array('route' => $route));
+			$result = $this->client->call('GetAllDestinations', array());	
+		} else {
+			$route = $filter['route'];
+			$result = $this->client->call('GetStopDataByRoute', array('route' => $route));	
+		}		
 		return $result;
-		return $err;
 	}
 
 	public function getStationInfo($stationcode, $filter) {
 		
-	}
-
-	public function getAll() {
-		$ret = $this->initClient();
-		if($ret['status']!="200") return $ret;
-		if(false && !isset($filter['route'])) {
-			$err['status'] = "502";
-			$err['error'] = "Route must be defined";
-			return $err;
-		}
-		//$route = $filter['route'];
-		$result = $this->client->call('GetAllDestinations', array());
-		return $result;
-		return $err;
 	}
 
 
