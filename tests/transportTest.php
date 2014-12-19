@@ -11,18 +11,30 @@ class transportTest extends PHPUnit_Framework_TestCase
  	public function testValidReturnData()
     {
 
-      	$luas = new LuasApi();		
+      	/*$luas = new LuasApi();		
 		$forecast = $luas->getForecast("bus", array("format" => "json"));
 		$j = json_decode($forecast);
 		$this->assertTrue(is_array($j),"can be converted in array");
+		*/
     }
 
-    public function testTranStations() {
+    public function testTrainStations() {
     	$train = new TransportService(TransportServiceType::TRANSPORT_TRAIN);
     	$stations = $train->getStations();
-    	print_r($stations);
-    	$this->assertTrue(true);
+    	$this->assertTrue(is_array($stations));
+    	$this->assertTrue(count($stations)>0);
+    }
 
+    public function testBusStops() {
+    	$bus = new TransportService(TransportServiceType::TRANSPORT_BUS);
+    	$stops = $bus->getStations(array("route" => "151"));
+    	//print_r($stops);
+    }
+
+      public function testAllDestinations() {      	
+    	$bus = new DublinBus();
+    	$stops = $bus->getAll();
+    	print_r($stops);
     }
 
 }

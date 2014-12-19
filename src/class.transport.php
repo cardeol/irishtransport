@@ -1,5 +1,6 @@
 <?php
 
+	include(dirname(__FILE__)."/nusoap.php");
 
 	class TransportServiceType {
 		const TRANSPORT_LUAS = 1;
@@ -189,13 +190,56 @@ FFF;
 
 class DublinBus implements TransportInterface {
 	
-	public function getStations($filter = null) {
+	var $client;
 
+	public function initClient() {
+		$this->client = new nusoap_client('http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx?WSDL', true,'', '', '', '');
+		$err = $this->client->getError();
+		$ret = array();
+		if($err) {
+			$err['status'] = "502";
+			$err['error'] = "Unknown error occurred initialising API";
+			return $err;
+		}
+		return array("status" => "200", "message" =>"ok");
 	}
+
+	public function getStations($filter = null) {
+		$ret = $this->initClient();
+		if($ret['status']!="200") return $ret;
+		if(!isset($filter['route'])) {
+			$err['status'] = "502";
+			$err['error'] = "Route must be defined";
+			return $err;
+		}
+		$route = $filter['route'];
+		$result = $this->client->call('GetStopDataByRoute', array('route' => $route));
+		return $result;
+		return $err;
+	}
+
 	public function getStationInfo($stationcode, $filter) {
 		
 	}
 
+	public function getAll() {
+		$ret = $this->initClient();
+		if($ret['status']!="200") return $ret;
+		if(false && !isset($filter['route'])) {
+			$err['status'] = "502";
+			$err['error'] = "Route must be defined";
+			return $err;
+		}
+		//$route = $filter['route'];
+		$result = $this->client->call('GetAllDestinations', array());
+		return $result;
+		return $err;
+	}
+
+
+
 }
 
 
+
+?>
