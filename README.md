@@ -1,6 +1,9 @@
-irishtransport
-==============
+# Irish Transport
 
-Centralized API for public transportation in Ireland.
 
-// testing
+### Requisites
+
+```
+Composer
+Slim
+```
