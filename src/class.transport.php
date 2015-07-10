@@ -287,6 +287,4 @@ class DublinBus implements TransportInterface {
 
 }
 
-
-exit
 ?>

@@ -2,7 +2,6 @@
 
 include("config.php");
 
-
 $app = new \Slim\Slim(array(
     'debug' => true
 ));
