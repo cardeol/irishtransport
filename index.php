@@ -15,7 +15,8 @@ $app->get('/', function () use ($app) {
 
 $app->get("/test", function() {
 	$d = new DublinBus();
-	$d->getStationInfo("3237",null);
+	 $d->getStationInfo("3237",null);
+	//$d->getAllRoutes();
 
 
 });

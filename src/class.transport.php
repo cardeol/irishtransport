@@ -191,6 +191,12 @@ FFF;
 class DublinBus implements TransportInterface {
 	
 	private $client;
+	private $routes;
+
+
+	function __construct() {
+		$this->routes = $this->getAllRoutes();
+	}
 
 	public function initClient() {
 		$this->client = new nusoap_client('http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx?WSDL', true,'', '', '', '');
@@ -201,7 +207,7 @@ class DublinBus implements TransportInterface {
 			$err['error'] = "Unknown error occurred initialising API";
 			return $err;
 		}
-		return array("status" => "200", "message" =>"ok");
+		return array("status" => "200", "message" =>"ok");		
 	}
 
 	public function getStations($filter = null) {
@@ -216,95 +222,123 @@ class DublinBus implements TransportInterface {
 		return $result;
 	}
 
-	public function getStationInfo($stationcode,$filter) { // 3237
+	private function getDublinBusXML($xml_post_string) {
 		$url = "http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx";
+		$headers = array(
+                    "Content-type: text/xml;charset=\"utf-8\"",
+                    "Accept: text/xml",
+                    "Cache-Control: no-cache",
+                    "Pragma: no-cache",
+                    "Content-length: ".strlen($xml_post_string)
+                    );
         
-        // xml post structure
+        // PHP cURL  for https connection with auth
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        //curl_setopt($ch, CURLOPT_USERPWD, $soapUser.":".$soapPassword); // username and password - declared at the top of the doc
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_post_string); // the SOAP request
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-        $xml_post_string = 
-           '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
+        // converting
+        $result = curl_exec($ch); 
+        curl_close($ch);
+        // converting
+        $response1 = str_replace("<soap:Body>","",$result);
+        $response2 = str_replace("</soap:Body>","",$response1);
+        return $response2;
+	}
+
+	public function getAllRoutes() {
+		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 			   <soapenv:Header/>
 			   <soapenv:Body>
-			      <dub:GetRealTimeStopData>
-			         <dub:stopId>'.$stationcode.'</dub:stopId>
-			         <dub:forceRefresh>1</dub:forceRefresh>
-			      </dub:GetRealTimeStopData>
+			      <dub:GetRoutes>
+			         <dub:filter></dub:filter>
+			      </dub:GetRoutes>
 			   </soapenv:Body>
-			</soapenv:Envelope>';  
+			</soapenv:Envelope>';
+		$resp = $this->getDublinBusXML($xml_post_string);
+		$xml = new SimpleXMLElement($resp);
 
-           $headers = array(
-                        "Content-type: text/xml;charset=\"utf-8\"",
-                        "Accept: text/xml",
-                        "Cache-Control: no-cache",
-                        "Pragma: no-cache",
-                        "Content-length: ".strlen($xml_post_string)
-                        );
-            
-            // PHP cURL  for https connection with auth
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            //curl_setopt($ch, CURLOPT_USERPWD, $soapUser.":".$soapPassword); // username and password - declared at the top of the doc
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_post_string); // the SOAP request
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$xml = $xml->GetRoutesResponse->GetRoutesResult->Routes->asXML();
+		//echo($xml);
+		$ret = array();
+		$xml = new SimpleXMLElement($xml);
+		foreach($xml->Route as $route) {
+			$item = array();
+			$rn = (string) $route->Number;
+			$item["n"] = $rn;
+			$item["ori"] = (string) $route->From;
+			$item["des"] = (string) $route->Towards;
+			$ret[] = $item;
+		}
+		return $ret;
+	}
 
-            // converting
-            $result = curl_exec($ch); 
-            
+	public function getRouteInfo($route) {
+		foreach($this->routes as $r) {
+			if($r["n"]==$route) return $r;
+		}
+		return array( "n" => $route, "ori" =>"", "des" => "" );
+	}
 
-            curl_close($ch);
+	public function getStationInfo($stationcode,$filter) { // 3237
+		// xml post structure
 
-            // converting
-            $response1 = str_replace("<soap:Body>","",$result);
-            $response2 = str_replace("</soap:Body>","",$response1);
+        $xml_post_string = 
+       '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <dub:GetRealTimeStopData>
+		         <dub:stopId>'.$stationcode.'</dub:stopId>
+		         <dub:forceRefresh>1</dub:forceRefresh>
+		      </dub:GetRealTimeStopData>
+		   </soapenv:Body>
+		</soapenv:Envelope>';  
 
-            $xml = new SimpleXMLElement($response2);
-            $xml->registerXPathNamespace("s", "http://schemas.xmlsoap.org/soap/envelope/");
-            $xml->registerXPathNamespace("a", "http://dublinbus.ie/");            
-            $xml->registerXPathNamespace("b", "urn:schemas-microsoft-com:xml-msdata");
-            $xml->registerXPathNamespace("c", "urn:schemas-microsoft-com:xml-diffgram-v1");
-            $xml->registerXPathNamespace("h", "");
+		$resp = $this->getDublinBusXML($xml_post_string);       
 
+        $xml = new SimpleXMLElement($resp);
+        $xml = $xml->GetRealTimeStopDataResponse->GetRealTimeStopDataResult->asXML();
+        $xml = str_replace("diffgr:diffgram","diffgr",$xml);
+        
+        $xml = new SimpleXMLElement($xml);
+        $xml = $xml->diffgr->DocumentElement;
 
-            //$xml = $xml->xpath();
-            $xml = new SimpleXMLElement($response2);
-            $xml = $xml->GetRealTimeStopDataResponse->GetRealTimeStopDataResult->asXML();
-            $xml = str_replace("diffgr:diffgram","diffgr",$xml);
-            
-            $xml = new SimpleXMLElement($xml);
-            $xml = $xml->diffgr->DocumentElement;
+        $ret = array();
 
-            $ret = array();
+        foreach($xml->StopData as $st) {
 
-            foreach($xml->StopData as $st) {
+        	 $r = array();
 
-            	 $r = array();
+        	 $parts = explode(" via ", $st->MonitoredVehicleJourney_DestinationName);
+        	 $status = (string) $st->MonitoredVehicleJourney_InCongestion;
+        	 $route = (string) $st->MonitoredVehicleJourney_LineRef;
+        	 $routeinfo = $this->getRouteInfo($route);
+        	 $r["tra"] = $route;
+        	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
+        	 $r['ori'] = $routeinfo["ori"];
+        	 $r['des'] = $routeinfo["des"];
+        	 $r['due'] = "";
+        	 $r["eta"] = (string) $st->MonitoredCall_ExpectedArrivalTime;
+        	 $r["dir"] = (string) $st->MonitoredVehicleJourney_DestinationName;
 
-            	 $parts = explode(" via ", $st->MonitoredVehicleJourney_DestinationName);
-            	 $status = (string) $st->MonitoredVehicleJourney_InCongestion;
-            	 $r["tra"] = (string) $st->MonitoredVehicleJourney_VehicleRef;
-            	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
-            	 $r['ori'] = "";
-            	 $r['des'] = count($parts)==2 ? $parts[0] : "";
-            	 $r['due'] = "";
-            	 $r["eta"] = (string) $st->MonitoredCall_ExpectedArrivalTime;
-            	 $r["dir"] = (string) $st->MonitoredVehicleJourney_DestinationName;
+        	 $ret[] = $r;
+        };
 
-            	 $ret[] = $r;
-            };
+        print_r($ret);
 
-            print_r($ret);
+        //print_r($xml->asXML());
+      	
 
-            //print_r($xml->asXML());
-          	
+        //return $response2;
 
-            //return $response2;
-
-            // user $parser to get your data out of XML response and to display it.
+        // user $parser to get your data out of XML response and to display it.
 
 	}
 
