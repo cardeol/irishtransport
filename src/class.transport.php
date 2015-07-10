@@ -1,5 +1,6 @@
 <?php
 
+	ini_set('date.timezone', 'Europe/Dublin');
 	
 	class TransportServiceType {
 		const TRANSPORT_LUAS = 1;
@@ -166,7 +167,7 @@ FFF;
 				 $due = (int) $item->Duein;
 				 if(strlen(trim($item->Origin))==1) break;
 				 if(trim($item->Exparrival)=="00:00") $item->Exparrival="";
-				 if($due<160) {
+				 if($due<180) {
 					 $ret[] = array(
 						"tra" => trim($item->Traincode),
 						"ori" => (string) $item->Origin,
@@ -319,13 +320,20 @@ class DublinBus implements TransportInterface {
         	 $status = (string) $st->MonitoredVehicleJourney_InCongestion;
         	 $route = (string) $st->MonitoredVehicleJourney_LineRef;
         	 $routeinfo = $this->getRouteInfo($route);
+
+        	 $atime = (string) $st->MonitoredCall_ExpectedArrivalTime;
+        	 $eta = strtotime($atime);
+        	 $current_time = time();
+
         	 $r["tra"] = $route;
         	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
         	 $r['ori'] = $routeinfo["ori"];
         	 $r['des'] = $routeinfo["des"];
-        	 $r['due'] = "";
-        	 $r["eta"] = (string) $st->MonitoredCall_ExpectedArrivalTime;
+
+        	 $r["eta"] = date("H:i",$eta);
         	 $r["dir"] = (string) $st->MonitoredVehicleJourney_DestinationName;
+
+        	 $r["due"] = round(abs($eta - $current_time) / 60,2). " minutes";
 
         	 $ret[] = $r;
         };
