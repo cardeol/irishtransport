@@ -13,6 +13,13 @@ $app->get('/', function () use ($app) {
 });
 
 
+$app->get("/test", function() {
+	$d = new DublinBus();
+	$d->getStationInfo("3237",null);
+
+
+});
+
 function echoResponse($status_code, $response)  {
 	$app = \Slim\Slim::getInstance();
     $app->status($status_code);

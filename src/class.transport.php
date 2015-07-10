@@ -272,10 +272,34 @@ class DublinBus implements TransportInterface {
 
             //$xml = $xml->xpath();
             $xml = new SimpleXMLElement($response2);
-            $xml = $xml->GetRealTimeStopDataResponse->GetRealTimeStopDataResult;
+            $xml = $xml->GetRealTimeStopDataResponse->GetRealTimeStopDataResult->asXML();
+            $xml = str_replace("diffgr:diffgram","diffgr",$xml);
             
-            $z = $xml;
-            print_r($z->asXML());
+            $xml = new SimpleXMLElement($xml);
+            $xml = $xml->diffgr->DocumentElement;
+
+            $ret = array();
+
+            foreach($xml->StopData as $st) {
+
+            	 $r = array();
+
+            	 $parts = explode(" via ", $st->MonitoredVehicleJourney_DestinationName);
+            	 $status = (string) $st->MonitoredVehicleJourney_InCongestion;
+            	 $r["tra"] = (string) $st->MonitoredVehicleJourney_VehicleRef;
+            	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
+            	 $r['ori'] = "";
+            	 $r['des'] = count($parts)==2 ? $parts[0] : "";
+            	 $r['due'] = "";
+            	 $r["eta"] = (string) $st->MonitoredCall_ExpectedArrivalTime;
+            	 $r["dir"] = (string) $st->MonitoredVehicleJourney_DestinationName;
+
+            	 $ret[] = $r;
+            };
+
+            print_r($ret);
+
+            //print_r($xml->asXML());
           	
 
             //return $response2;
