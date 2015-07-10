@@ -216,14 +216,77 @@ class DublinBus implements TransportInterface {
 		return $result;
 	}
 
-	public function getStationInfo($stationcode, $filter) {
-		
-	}
+	public function getStationInfo($stationcode,$filter) { // 3237
+		$url = "http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx";
+        
+        // xml post structure
 
+        $xml_post_string = 
+           '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
+			   <soapenv:Header/>
+			   <soapenv:Body>
+			      <dub:GetRealTimeStopData>
+			         <dub:stopId>'.$stationcode.'</dub:stopId>
+			         <dub:forceRefresh>1</dub:forceRefresh>
+			      </dub:GetRealTimeStopData>
+			   </soapenv:Body>
+			</soapenv:Envelope>';  
+
+           $headers = array(
+                        "Content-type: text/xml;charset=\"utf-8\"",
+                        "Accept: text/xml",
+                        "Cache-Control: no-cache",
+                        "Pragma: no-cache",
+                        "Content-length: ".strlen($xml_post_string)
+                        );
+            
+            // PHP cURL  for https connection with auth
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            //curl_setopt($ch, CURLOPT_USERPWD, $soapUser.":".$soapPassword); // username and password - declared at the top of the doc
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_post_string); // the SOAP request
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+            // converting
+            $result = curl_exec($ch); 
+            
+
+            curl_close($ch);
+
+            // converting
+            $response1 = str_replace("<soap:Body>","",$result);
+            $response2 = str_replace("</soap:Body>","",$response1);
+
+            $xml = new SimpleXMLElement($response2);
+            $xml->registerXPathNamespace("s", "http://schemas.xmlsoap.org/soap/envelope/");
+            $xml->registerXPathNamespace("a", "http://dublinbus.ie/");            
+            $xml->registerXPathNamespace("b", "urn:schemas-microsoft-com:xml-msdata");
+            $xml->registerXPathNamespace("c", "urn:schemas-microsoft-com:xml-diffgram-v1");
+            $xml->registerXPathNamespace("h", "");
+
+
+            //$xml = $xml->xpath();
+            $xml = new SimpleXMLElement($response2);
+            $xml = $xml->GetRealTimeStopDataResponse->GetRealTimeStopDataResult;
+            
+            $z = $xml;
+            print_r($z->asXML());
+          	
+
+            //return $response2;
+
+            // user $parser to get your data out of XML response and to display it.
+
+	}
 
 
 }
 
 
-
+exit
 ?>
