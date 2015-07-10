@@ -1,7 +1,6 @@
 <?php
 
-	include(dirname(__FILE__)."/nusoap.php");
-
+	
 	class TransportServiceType {
 		const TRANSPORT_LUAS = 1;
 		const TRANSPORT_BUS = 2;
@@ -192,6 +191,7 @@ class DublinBus implements TransportInterface {
 	
 	private $client;
 	private $routes;
+	const SERVICE_URL = "http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx";
 
 
 	function __construct() {
@@ -199,7 +199,7 @@ class DublinBus implements TransportInterface {
 	}
 
 	public function initClient() {
-		$this->client = new nusoap_client('http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx?WSDL', true,'', '', '', '');
+		/*$this->client = new nusoap_client('http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx?WSDL', true,'', '', '', '');
 		$err = $this->client->getError();
 		$ret = array();
 		if($err) {
@@ -207,7 +207,7 @@ class DublinBus implements TransportInterface {
 			$err['error'] = "Unknown error occurred initialising API";
 			return $err;
 		}
-		return array("status" => "200", "message" =>"ok");		
+		return array("status" => "200", "message" =>"ok");		*/
 	}
 
 	public function getStations($filter = null) {
@@ -223,7 +223,7 @@ class DublinBus implements TransportInterface {
 	}
 
 	private function getDublinBusXML($xml_post_string) {
-		$url = "http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx";
+		$url = self::SERVICE_URL;
 		$headers = array(
                     "Content-type: text/xml;charset=\"utf-8\"",
                     "Accept: text/xml",
@@ -316,7 +316,6 @@ class DublinBus implements TransportInterface {
 
         	 $r = array();
 
-        	 $parts = explode(" via ", $st->MonitoredVehicleJourney_DestinationName);
         	 $status = (string) $st->MonitoredVehicleJourney_InCongestion;
         	 $route = (string) $st->MonitoredVehicleJourney_LineRef;
         	 $routeinfo = $this->getRouteInfo($route);
@@ -331,15 +330,7 @@ class DublinBus implements TransportInterface {
         	 $ret[] = $r;
         };
 
-        print_r($ret);
-
-        //print_r($xml->asXML());
-      	
-
-        //return $response2;
-
-        // user $parser to get your data out of XML response and to display it.
-
+        return $ret;
 	}
 
 
