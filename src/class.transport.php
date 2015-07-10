@@ -212,18 +212,7 @@ class DublinBus implements TransportInterface {
 		}
 		return array("status" => "200", "message" =>"ok");		*/
 	}
-
-	public function getStations($filter = null) {
-		$ret = $this->initClient();
-		if($ret['status']!="200") return $ret;
-		if(!isset($filter['route'])) {
-			$result = $this->client->call('GetAllDestinations', array());	
-		} else {
-			$route = $filter['route'];
-			$result = $this->client->call('GetStopDataByRoute', array('route' => $route));	
-		}		
-		return $result;
-	}
+	
 
 	private function getDublinBusXML($xml_post_string) {
 		$url = self::SERVICE_URL;
@@ -254,6 +243,52 @@ class DublinBus implements TransportInterface {
         $response1 = str_replace("<soap:Body>","",$result);
         $response2 = str_replace("</soap:Body>","",$response1);
         return $response2;
+	}
+
+	public function getStations($filter) {
+		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
+			   <soapenv:Header/>
+			   <soapenv:Body>
+			      <dub:GetAllDestinations/>
+			   </soapenv:Body>
+			</soapenv:Envelope>';
+		$resp = $this->getDublinBusXML($xml_post_string);
+		$xml = new SimpleXMLElement($resp);
+		$xml = $xml->GetAllDestinationsResponse->GetAllDestinationsResult->Destinations->asXML();
+
+		$ret = array();
+
+		foreach($xml->Destination as $des) {
+			$item = array();
+			$item["stopnumber"] = (string) $des->StopNumber;
+			$item["lat"] = (string) $des->Latitude;
+			$item["lon"] = (string) $des->Longitude;
+			$item["description"] = (string) $des->Description; // Parnell Square, ParnellStreet
+			$ret[] = $item;
+		}
+		return $ret;
+
+	}
+
+	public function getRoutesByStopId($stopid) {
+		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
+		   <soapenv:Header/>
+		   <soapenv:Body>
+		      <dub:GetRoutesServicedByStopNumber>
+		         <dub:stopId>'.$stopid.'</dub:stopId>
+		      </dub:GetRoutesServicedByStopNumber>
+		   </soapenv:Body>
+		</soapenv:Envelope>';
+		$resp = $this->getDublinBusXML($xml_post_string);
+		$xml = new SimpleXMLElement($resp);
+		$xml = $xml->GetRoutesServicedByStopNumberResponse->GetRoutesServicedByStopNumberResult->asXML();
+		$xml = new SimpleXMLElement($xml);
+		$ret = array();
+		foreach($xml->Route as $route) {
+			$item = array();			
+			$ret[] = (string) $route->Number;
+		}
+		return $ret;
 	}
 
 	public function getAllRoutes() {
