@@ -1,6 +1,8 @@
 <?php
 
-	ini_set('date.timezone', 'Europe/Dublin');
+	$timezone = 'Europe/Dublin';
+	ini_set('date.timezone', $timezone);
+	date_default_timezone_set ( $timezone );
 	
 	class TransportServiceType {
 		const TRANSPORT_LUAS = 1;
@@ -329,11 +331,13 @@ class DublinBus implements TransportInterface {
         	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
         	 $r['ori'] = $routeinfo["ori"];
         	 $r['des'] = $routeinfo["des"];
-
         	 $r["eta"] = date("H:i",$eta);
         	 $r["dir"] = (string) $st->MonitoredVehicleJourney_DestinationName;
 
-        	 $r["due"] = round(abs($eta - $current_time) / 60,2). " minutes";
+        	 $due = round(abs($eta - $current_time) / 60,0);
+        	 $toshow = $due."m";
+        	 if($due>60) $toshow = floor($due/60).":".floor($due%60);
+        	 $r["due"] = $toshow;
 
         	 $ret[] = $r;
         };
