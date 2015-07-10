@@ -19,11 +19,17 @@ $app->get("/test", function() {
     $info = $d->getRoutesByStopId("3237");
 
 	print_r($info);
-
-	//$d->getAllRoutes();
-
-
 });
+
+
+$app->get("/stations", function() {
+	$d = new DublinBus();
+	// $info = $d->getStationInfo("3237",null);
+    $info = $d->getStations("3282");
+
+	print_r($info);
+});
+
 
 function echoResponse($status_code, $response)  {
 	$app = \Slim\Slim::getInstance();

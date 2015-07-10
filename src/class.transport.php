@@ -45,6 +45,10 @@
 		public static function ResponseError($message) {
 			return array("success" => 0, "message" => $message );
 		}
+
+		public static function xmle($xmlo) {
+			return trim((string) $xmlo);
+		}
 	}
 
 	class TransportService {	
@@ -255,15 +259,15 @@ class DublinBus implements TransportInterface {
 		$resp = $this->getDublinBusXML($xml_post_string);
 		$xml = new SimpleXMLElement($resp);
 		$xml = $xml->GetAllDestinationsResponse->GetAllDestinationsResult->Destinations->asXML();
-
+		$xml = new SimpleXMLElement($xml);
 		$ret = array();
 
 		foreach($xml->Destination as $des) {
 			$item = array();
-			$item["stopnumber"] = (string) $des->StopNumber;
-			$item["lat"] = (string) $des->Latitude;
-			$item["lon"] = (string) $des->Longitude;
-			$item["description"] = (string) $des->Description; // Parnell Square, ParnellStreet
+			//$item["stopnumber"] = (string) $des->StopNumber;
+			$item["lat"] = TransportHelper::xmle($des->Latitude);
+			$item["lon"] = TransportHelper::xmle($des->Longitude);
+			$item["description"] = TransportHelper::xmle($des->Description); // Parnell Square, ParnellStreet
 			$ret[] = $item;
 		}
 		return $ret;
@@ -286,7 +290,7 @@ class DublinBus implements TransportInterface {
 		$ret = array();
 		foreach($xml->Route as $route) {
 			$item = array();			
-			$ret[] = (string) $route->Number;
+			$ret[] = TransportHelper::xmle($route->Number);
 		}
 		return $ret;
 	}
@@ -311,8 +315,8 @@ class DublinBus implements TransportInterface {
 			$item = array();
 			$rn = (string) $route->Number;
 			$item["n"] = $rn;
-			$item["ori"] = (string) $route->From;
-			$item["des"] = (string) $route->Towards;
+			$item["ori"] = TransportHelper::xmle($route->From);
+			$item["des"] = TransportHelper::xmle($route->Towards);
 			$ret[] = $item;
 		}
 		return $ret;
@@ -354,11 +358,11 @@ class DublinBus implements TransportInterface {
 
         	 $r = array();
 
-        	 $status = (string) $st->MonitoredVehicleJourney_InCongestion;
-        	 $route = (string) $st->MonitoredVehicleJourney_LineRef;
+        	 $status = TransportHelper::xmle($st->MonitoredVehicleJourney_InCongestion);
+        	 $route = TransportHelper::xmle($st->MonitoredVehicleJourney_LineRef);
         	 $routeinfo = $this->getRouteInfo($route);
 
-        	 $atime = (string) $st->MonitoredCall_ExpectedArrivalTime;
+        	 $atime = TransportHelper::xmle($st->MonitoredCall_ExpectedArrivalTime);
         	 $eta = strtotime($atime);
         	 $current_time = time();
 
@@ -367,7 +371,7 @@ class DublinBus implements TransportInterface {
         	 $r['ori'] = $routeinfo["ori"];
         	 $r['des'] = $routeinfo["des"];
         	 $r["eta"] = date("H:i",$eta);
-        	 $r["dir"] = (string) $st->MonitoredVehicleJourney_DestinationName;
+        	 $r["dir"] = TransportHelper::xmle($st->MonitoredVehicleJourney_DestinationName);
 
         	 $due = round(abs($eta - $current_time) / 60,0);
         	 $toshow = $due."m";
