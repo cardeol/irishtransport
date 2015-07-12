@@ -227,6 +227,7 @@ class DublinBus implements TransportInterface {
                     "Pragma: no-cache",
                     "Content-length: ".strlen($xml_post_string)
                     );
+		
         
         // PHP cURL  for https connection with auth
         $ch = curl_init();
