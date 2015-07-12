@@ -46,6 +46,16 @@
 			return array("success" => 0, "message" => $message );
 		}
 
+		
+		public static function XMLtoArray($xml) {
+			$array = json_decode(json_encode($xml), TRUE);		   
+			foreach ( array_slice($array, 0) as $key => $value ) {
+				if ( empty($value) ) $array[$key] = NULL;
+				elseif ( is_array($value) ) $array[$key] = self::XMLtoArray($value);
+			}
+			return $array;
+		}
+
 		public static function xmle($xmlo) {
 			return trim((string) $xmlo);
 		}
@@ -214,7 +224,8 @@ class DublinBus implements TransportInterface {
 			$err['error'] = "Unknown error occurred initialising API";
 			return $err;
 		}
-		return array("status" => "200", "message" =>"ok");		*/
+		return array("status" => "200", "
+			message" =>"ok");		*/
 	}
 	
 
@@ -286,14 +297,16 @@ class DublinBus implements TransportInterface {
 		</soapenv:Envelope>';
 		$resp = $this->getDublinBusXML($xml_post_string);
 		$xml = new SimpleXMLElement($resp);
-		$xml = $xml->GetRoutesServicedByStopNumberResponse->GetRoutesServicedByStopNumberResult->asXML();
-		$xml = new SimpleXMLElement($xml);
+		$arr = TransportHelper::XMLtoArray($xml);
 		$ret = array();
-		foreach($xml->Route as $route) {
-			$item = array();			
-			$ret[] = TransportHelper::xmle($route->Number);
+		if(isset($arr['GetRoutesServicedByStopNumberResponse'])) {
+			$routes = $arr['GetRoutesServicedByStopNumberResponse']['GetRoutesServicedByStopNumberResult']['Route'];
+			foreach($routes as $route) {
+				$ret[] = $route['Number'];
+			}
 		}
 		return $ret;
+
 	}
 
 	public function getAllRoutes() {
@@ -301,7 +314,7 @@ class DublinBus implements TransportInterface {
 			   <soapenv:Header/>
 			   <soapenv:Body>
 			      <dub:GetRoutes>
-			         <dub:filter></dub:filter>
+			         <dub:filter></dub:filter>N
 			      </dub:GetRoutes>
 			   </soapenv:Body>
 			</soapenv:Envelope>';
