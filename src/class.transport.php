@@ -270,18 +270,19 @@ class DublinBus implements TransportInterface {
 			</soapenv:Envelope>';
 		$resp = $this->getDublinBusXML($xml_post_string);
 		$xml = new SimpleXMLElement($resp);
-		$xml = $xml->GetAllDestinationsResponse->GetAllDestinationsResult->Destinations->asXML();
-		$xml = new SimpleXMLElement($xml);
+		$arr = TransportHelper::XMLtoArray($xml);
 		$ret = array();
-
-		foreach($xml->Destination as $des) {
-			$item = array();
-			//$item["stopnumber"] = (string) $des->StopNumber;
-			$item["lat"] = TransportHelper::xmle($des->Latitude);
-			$item["lon"] = TransportHelper::xmle($des->Longitude);
-			$item["description"] = TransportHelper::xmle($des->Description); // Parnell Square, ParnellStreet
-			$ret[] = $item;
-		}
+		if(isset($arr['GetAllDestinationsResponse'])) {
+			$destinations = $arr['GetAllDestinationsResponse']['GetAllDestinationsResult']['Destinations']['Destination'];
+			foreach($destinations as $des) {
+				$item = array();
+				$item['tra'] = $des['StopNumber'];
+				$item['lat'] = $des['Latitude'];
+				$item['lon'] = $des['Longitude'];
+				$item['des'] = $des['Description'];
+				$ret[] = $item;
+			}
+		}		
 		return $ret;
 
 	}
