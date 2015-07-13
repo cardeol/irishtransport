@@ -362,39 +362,36 @@ class DublinBus implements TransportInterface {
 
         $xml = new SimpleXMLElement($resp);
         $xml = $xml->GetRealTimeStopDataResponse->GetRealTimeStopDataResult->asXML();
-        $xml = str_replace("diffgr:diffgram","diffgr",$xml);
-        
+        $xml = str_replace("diffgr:diffgram","diffgr",$xml);        
         $xml = new SimpleXMLElement($xml);
-        $xml = $xml->diffgr->DocumentElement;
+        $arr = TransportHelper::XMLtoArray($xml);
+        $ret = array();        
 
-        $ret = array();
+        if(isset($arr['diffgr'])) {
+        	foreach($arr['diffgr']['DocumentElement']['StopData'] as $st) {
+	        	 $r = array();
+	        	 $status = $st['MonitoredVehicleJourney_InCongestion'];
+	        	 $route = $st['MonitoredVehicleJourney_LineRef'];
+	        	 $routeinfo = $this->getRouteInfo($route);
+	        	 $atime = $st['MonitoredCall_ExpectedArrivalTime'];
+	        	 $eta = strtotime($atime);
+	        	 $current_time = time();
+	        	 $r["tra"] = $route;
+	        	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
+	        	 $r['ori'] = $routeinfo["ori"];
+	        	 $r['des'] = $routeinfo["des"];
+	        	 $r["eta"] = date("H:i",$eta);
+	        	 $r["dir"] = $st['MonitoredVehicleJourney_DestinationName'];
+	        	 $due = round(abs($eta - $current_time) / 60,0);
+	        	 $toshow = $due."m";
+	        	 if($due>60) $toshow = floor($due/60).":".floor($due%60);
+	        	 $r["due"] = $toshow;
 
-        foreach($xml->StopData as $st) {
+	        	 $ret[] = $r;
+	        };
+        }
 
-        	 $r = array();
-
-        	 $status = TransportHelper::xmle($st->MonitoredVehicleJourney_InCongestion);
-        	 $route = TransportHelper::xmle($st->MonitoredVehicleJourney_LineRef);
-        	 $routeinfo = $this->getRouteInfo($route);
-
-        	 $atime = TransportHelper::xmle($st->MonitoredCall_ExpectedArrivalTime);
-        	 $eta = strtotime($atime);
-        	 $current_time = time();
-
-        	 $r["tra"] = $route;
-        	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
-        	 $r['ori'] = $routeinfo["ori"];
-        	 $r['des'] = $routeinfo["des"];
-        	 $r["eta"] = date("H:i",$eta);
-        	 $r["dir"] = TransportHelper::xmle($st->MonitoredVehicleJourney_DestinationName);
-
-        	 $due = round(abs($eta - $current_time) / 60,0);
-        	 $toshow = $due."m";
-        	 if($due>60) $toshow = floor($due/60).":".floor($due%60);
-        	 $r["due"] = $toshow;
-
-        	 $ret[] = $r;
-        };
+        
 
         return $ret;
 	}

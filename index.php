@@ -15,9 +15,9 @@ $app->get('/', function () use ($app) {
 
 $app->get("/test", function() {
 	$d = new DublinBus();
-	// $info = $d->getStationInfo("3237",null);
+	$info = $d->getStationInfo("3237",null);
   // $info = $d->getRoutesByStopId("3237");
-  $info = $d->getStations(null);
+  //$info = $d->getStations(null);
 
 	print_r($info);
 });
@@ -26,7 +26,7 @@ $app->get("/test", function() {
 $app->get("/stations", function() {
 	$d = new DublinBus();
 	// $info = $d->getStationInfo("3237",null);
-    $info = $d->getStations("3282");
+    $info = $d->getStations("20");
 
 	print_r($info);
 });
