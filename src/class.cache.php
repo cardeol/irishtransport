@@ -2,76 +2,81 @@
 /*
 * Clase Cache
 * carlos de oliveira
-* cardoel@gmail.com
+* cardeol@gmail.com
 */
 
-class cache
+// cache dir requires read/write permissions 
+define("APPCACHE_DEFAULT_DIR",dirname(dirname(__FILE__))."/cache/");
+
+
+class AppCache
 {
 	var $cache_dir; 
 	var $cache_time;
 	var $caching = false; 
 	var $cleaning = false; 
+	var $compression = false;
 	var $file = ''; 
 	var $key;
 	var $keylink;
+	var $prefix;
+
+	const CACHE_TIME = 28800;
 	
-	function __construct() {	
-		$this->cache_time = 20;
-		$this->cache_dir = CACHEDIR;	
+	function __construct() {
+		$this->cache_time = self::CACHE_TIME;
+		$this->cache_dir = APPCACHE_DEFAULT_DIR;	
 		$this->cleaning = NULL;
-		$this->key = "lsjdhfsd4sdaaa";	
-		$this->keylink = $_SERVER['REQUEST_URI'];
+		$this->key = "appcacheid";	
+		$this->keylink = urlencode($_SERVER['REQUEST_URI']);
+		$this->prefix = "cache_";
 	}
 	
-	function cache() {
-		$this->cache_time = 20;
-		$this->cache_dir = CACHEDIR;	
-		$this->cleaning = NULL;
+	function deleteCache() {
+		$files = glob($this->cache_dir."cache_*"); 
+		foreach($files as $f) {
+			if(file_exists($f)) @unlink($f);
+		}
+		return true;
+	}
+
+	public function compressData($needcompression) {
+		$this->compression = $needcompression;
 	}
 	
-	function setKeyLink($link) {
-		$this->keylink = $link;
+	public function setKey($link) {
+		$this->keylink = serialize($link);
 	}
 
 	
-	function setTime($seconds) {
+	public function setTime($seconds) {
 		$this->cache_time = $seconds;	
 	}
 	
 	public function getFile() {
-		return $this->cache_dir."cache_".md5($this->key.$this->keylink).".html"; 
+		return $this->cache_dir.$this->prefix.md5($this->key.$this->keylink).".txt"; 
+	}
+
+	public function clear() {
+		$file = $this->getFile();
+		if(file_exists($file) && is_file($file)) @unlink($file);
+		return true;
 	}
 	
 	public function getCache() {
 		return $this->start(true);	
 	}
 	
-	
-	private function getContents($path, $waitIfLocked = true) {
-		if(!file_exists($path)) return "";
-		$fo = fopen($path, 'r');
-		$locked = flock($fo, LOCK_SH, $waitIfLocked);	   
-		if(!$locked) {
-			return false;
-		}
-		else {
-			$cts = file_get_contents($path);		   
-			flock($fo, LOCK_UN);
-			fclose($fo);		   
-			return $cts;
-		}
-	} 
-	
-	function start($return = false)	{				
+	public function start($return = false)	{				
 		$this->file = $this->getFile();
 		if (file_exists($this->file) && (
 			fileatime($this->file)+$this->cache_time)>time() && 
 			$this->cleaning == false)	{
-			$data = $this->getContents($this->file);
-			//$data = bzdecompress($data);
+			$data = file_get_contents($this->file);		
+			if($this->compression) $data = bzdecompress($data);
+			$data = unserialize($data);
 			if($return) return $data;
-			echo $data;
-			exit();
+			echo $data;			
 		} else {		
 			$this->caching = true;
 			return false;
@@ -82,16 +87,17 @@ class cache
 		$this->finish($data,false);
 	}
 	
-	function finish($data, $echo = true){
+	public function finish($data, $echo = true){
+		$data = serialize($data);
 		if ($this->caching){
 			if($echo) echo $data;
 			if(file_exists($this->file)) unlink($this->file);
 			$fp = fopen( $this->file , 'w' );
-			//$data = bzcompress($data);
-			//fwrite ( $fp , bzcompress($data) );
+			if($this->compression) $data = bzcompress($data);
 			fwrite ( $fp , $data );
 			fclose ( $fp );
 		}
-	}	 
+	}	
 } 
+
 ?>

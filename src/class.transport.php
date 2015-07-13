@@ -215,20 +215,6 @@ class DublinBus implements TransportInterface {
 		$this->routes = $this->getAllRoutes();
 	}
 
-	public function initClient() {
-		/*$this->client = new nusoap_client('http://rtpi.dublinbus.biznetservers.com/DublinBusRTPIService.asmx?WSDL', true,'', '', '', '');
-		$err = $this->client->getError();
-		$ret = array();
-		if($err) {
-			$err['status'] = "502";
-			$err['error'] = "Unknown error occurred initialising API";
-			return $err;
-		}
-		return array("status" => "200", "
-			message" =>"ok");		*/
-	}
-	
-
 	private function getDublinBusXML($xml_post_string) {
 		$url = self::SERVICE_URL;
 		$headers = array(
@@ -311,14 +297,15 @@ class DublinBus implements TransportInterface {
 	}
 
 	public function getAllRoutes() {
+
+		$cache = new AppCache();
+		$cache->setKey("gettALLBUSROUTES");
+		$cache->setTime(100000);	
+		$content = $cache->getCache();
+		if($content !== false) return "ok";
+
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
-			   <soapenv:Header/>
-			   <soapenv:Body>
-			      <dub:GetRoutes>
-			         <dub:filter></dub:filter>N
-			      </dub:GetRoutes>
-			   </soapenv:Body>
-			</soapenv:Envelope>';
+			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
 		$resp = $this->getDublinBusXML($xml_post_string);
 		$xml = new SimpleXMLElement($resp);
 
@@ -334,6 +321,7 @@ class DublinBus implements TransportInterface {
 			$item["des"] = TransportHelper::xmle($route->Towards);
 			$ret[] = $item;
 		}
+		if(count($ret)>0) $cache->saveOutput($content);
 		return $ret;
 	}
 
@@ -386,7 +374,6 @@ class DublinBus implements TransportInterface {
 	        	 $toshow = $due."m";
 	        	 if($due>60) $toshow = floor($due/60).":".floor($due%60);
 	        	 $r["due"] = $toshow;
-
 	        	 $ret[] = $r;
 	        };
         }
