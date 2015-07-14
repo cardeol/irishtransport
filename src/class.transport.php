@@ -172,6 +172,11 @@ FFF;
 		}*/
 
 		public function getStations($filter = null) {
+			$cache = new AppCache();
+			$cache->setKey("getALLTrainStations");
+			$cache->setTime(200000);	
+			$content = $cache->getCache();
+			if($content !== false) return $content;
 			$url = "http://api.irishrail.ie/realtime/realtime.asmx/getAllStationsXML";
 			$html = TransportHelper::getUrl($url); 
 			$xml = simplexml_load_string($html);	
@@ -196,6 +201,7 @@ FFF;
 			uksort($ret,function ($a,$b) { 
 				return strtolower($a)>strtolower($b); 
 			});
+			if(count($ret)>0) $cache->saveOutput($ret);
 			return $ret;
 		}
 
@@ -275,7 +281,12 @@ class DublinBus implements TransportInterface {
         return $response2;
 	}
 
-	public function getStations($filter) {
+	public function getStations($filter = null) {
+		$cache = new AppCache();
+		$cache->setKey("getAllBusStops");
+		$cache->setTime(200000);	
+		$content = $cache->getCache();
+		if($content !== false) return $content;
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 			   <soapenv:Header/>
 			   <soapenv:Body>
@@ -289,16 +300,45 @@ class DublinBus implements TransportInterface {
 		if(isset($arr['GetAllDestinationsResponse'])) {
 			$destinations = $arr['GetAllDestinationsResponse']['GetAllDestinationsResult']['Destinations']['Destination'];
 			foreach($destinations as $des) {
+				$code = trim(strtolower($des['StopNumber']));				
 				$item = array();
-				$item['tra'] = $des['StopNumber'];
+				$item['nam'] = $des['Description'];
 				$item['lat'] = $des['Latitude'];
 				$item['lon'] = $des['Longitude'];
-				$item['des'] = $des['Description'];
-				$ret[] = $item;
+				$ret[$code] = $item;
 			}
 		}		
+		if(count($ret)>0) $cache->saveOutput($ret);
 		return $ret;
 
+	}
+
+	public function getAllRoutes() {
+
+		$cache = new AppCache();
+		$cache->setKey("getAllBusRoutes");
+		$cache->setTime(200000);	
+		$content = $cache->getCache();
+		if($content !== false) return $content;
+
+		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
+			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
+		$resp = $this->getDublinBusXML($xml_post_string);
+		$xml = new SimpleXMLElement($resp);
+
+		$xml = $xml->GetRoutesResponse->GetRoutesResult->Routes->asXML();
+		//echo($xml);
+		$ret = array();
+		$xml = new SimpleXMLElement($xml);
+		foreach($xml->Route as $route) {
+			$item = array();
+			$rn = (string) $route->Number;			
+			$item["ori"] = TransportHelper::xmle($route->From);
+			$item["des"] = TransportHelper::xmle($route->Towards);
+			$ret[trim($rn)] = $item;
+		}
+		if(count($ret)>0) $cache->saveOutput($ret);
+		return $ret;
 	}
 
 	public function getRoutesByStopId($stopid) {
@@ -322,36 +362,7 @@ class DublinBus implements TransportInterface {
 		}
 		return $ret;
 
-	}
-
-	public function getAllRoutes() {
-
-		$cache = new AppCache();
-		$cache->setKey("gettALLBUSROUTES");
-		$cache->setTime(100000);	
-		$content = $cache->getCache();
-		if($content !== false) return $content;
-
-		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
-			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
-		$resp = $this->getDublinBusXML($xml_post_string);
-		$xml = new SimpleXMLElement($resp);
-
-		$xml = $xml->GetRoutesResponse->GetRoutesResult->Routes->asXML();
-		//echo($xml);
-		$ret = array();
-		$xml = new SimpleXMLElement($xml);
-		foreach($xml->Route as $route) {
-			$item = array();
-			$rn = (string) $route->Number;
-			$item["n"] = $rn;
-			$item["ori"] = TransportHelper::xmle($route->From);
-			$item["des"] = TransportHelper::xmle($route->Towards);
-			$ret[] = $item;
-		}
-		if(count($ret)>0) $cache->saveOutput($ret);
-		return $ret;
-	}
+	}	
 
 	public function getRouteInfo($route) {
 		foreach($this->routes as $r) {
