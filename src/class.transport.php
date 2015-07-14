@@ -2,8 +2,8 @@
 
 class TransportServiceType {
 	const TRANSPORT_LUAS = 1;
-	const TRANSPORT_BUS = 2;
-	const TRANSPORT_TRAIN = 3;		
+	const TRANSPORT_DUBLINBUS = 2;
+	const TRANSPORT_IRISHRAIL = 3;		
 }
 
 interface TransportInterface {
@@ -68,13 +68,13 @@ class TransportService {
 
 	function __construct($transporttype) {
 		switch($transporttype) {
-			case TransportServiceType::TRANSPORT_TRAIN:
+			case TransportServiceType::TRANSPORT_IRISHRAIL:
 				$this->selectedservice = new IrishRail();
 				break;
 			case TransportServiceType::TRANSPORT_LUAS:
 				$this->selectedservice = new DublinLuas();
 				break;
-			case TransportServiceType::TRANSPORT_BUS:					
+			case TransportServiceType::TRANSPORT_DUBLINBUS:					
 				$this->selectedservice = new DublinBus();
 				break;
 		}

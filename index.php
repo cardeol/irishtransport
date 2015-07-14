@@ -6,75 +6,60 @@ $app = new \Slim\Slim(array(
     'debug' => true
 ));
 
-
-$app->get('/', function () use ($app) {  
-  	$response = array("test" =>"testing data");
-  	echoResponse(200,$response);
-});
-
-
-$app->get("/test", function() {
-	$d = new DublinBus();
-	$info = $d->getStationInfo("3237",null);
-  // $info = $d->getRoutesByStopId("3237");
-  //$info = $d->getStations(null);
-  //$info = $d->getAllRoutes();
-  //$dart = new IrishRail();
-  //$info = $d->getStations(null);
-  //$info = $d->getAllRoutes();
-
-	print_r($info);
-});
-
-
-$app->get("/stations", function() {
-	$d = new DublinBus();
-	// $info = $d->getStationInfo("3237",null);
-    $info = $d->getStations("20");
-
-	print_r($info);
-});
-
-
-function echoResponse($status_code, $response)  {
-	$app = \Slim\Slim::getInstance();
-    $app->status($status_code);
-    $app->contentType('application/json'); 
-    echo json_encode($response);
+function displayResponse($r, $cache = 0) {
+  if(!is_array($r)) $cache = 0;
+  if(count($r)==0) $cache = 0;
+  if($cache>0) header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $cache)); 
+  header('Access-Control-Allow-Origin: *');  
+  header("Content-Type: application/json");
+  echo(json_encode($r));
 }
 
-$app->get("/deletecache", function() {
-  $cache = new AppCache();
-  $ache->deleteCache();
+$app->group('/dublinbus', function () use ($app) {
+
+    $service = new TransportService(TransportServiceType::TRANSPORT_DUBLINBUS);
+    
+    $app->get('/stationinfo/:stopid', function ($stopid) use ($service) {        
+        $response = $service->getStationInfo(strtolower($stopid));
+        displayResponse($response,10);
+    });
+
+    $app->get('/getstations', function () use ($service) {                
+        $response = $service->getStations();
+        displayResponse($response,(3600*24*30));
+    });
 });
 
-$app->get('/getstationinfo/:code', function($code) {
-  $code = strtolower($code);
-  $code = str_replace(".json", "", $code);
-  if(empty($code)) return false;  
-  header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 20));
-  header('Access-Control-Allow-Origin: *');  
-  header("Content-Type: application/json");
-  $content = APIRAIL::getStationInfo($code);
-  echo json_encode($content);
+$app->group('/irishrail', function () use ($app) {
+
+    $service = new TransportService(TransportServiceType::TRANSPORT_IRISHRAIL);
+    
+    $app->get('/stationinfo/:stopid', function ($stopid) use ($service) {        
+        $response = $service->getStationInfo(strtolower($stopid));
+        displayResponse($response,10);
+    });
+
+    $app->get('/getstations', function () use ($service) {                
+        $response = $service->getStations();
+        displayResponse($response,(3600*24*30));
+    });
 });
 
-$app->get('/gettraininfo/:code', function($code) {
-  $code = strtolower($code);
-  $code = str_replace(".json", "", $code);
-  if(empty($code)) return false;  
-  header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 10));
-  header('Access-Control-Allow-Origin: *');  
-  header("Content-Type: application/json");
-  $content = APIRAIL::getTrainInfo($code);
-  echo json_encode($content);
+$app->group('/luas', function () use ($app) {
+
+    $service = new TransportService(TransportServiceType::TRANSPORT_LUAS);
+    
+    $app->get('/stationinfo/:stopid', function ($stopid) use ($service) {        
+        $response = $service->getStationInfo(strtolower($stopid));
+        displayResponse($response,10);
+    });
+
+    $app->get('/getstations', function () use ($service) {                
+        $response = $service->getStations();
+        displayResponse($response,(3600*24*30));
+    });
 });
 
-$app->get("/getstations",function() {
-  header("Content-Type: application/json");
-  $res = json_encode(APIRAIL::getStations());
-  echo $res;
-});
 
 
 $app->run();
