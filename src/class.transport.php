@@ -314,30 +314,31 @@ class DublinBus implements TransportInterface {
 	}
 
 	public function getAllRoutes() {
-
 		$cache = new AppCache();
 		$cache->setKey("getAllBusRoutes");
-		$cache->setTime(200000);	
+		$cache->setTime(2000000);	
 		$content = $cache->getCache();
-		if($content !== false) return $content;
+		//if($content !== false) return $content;
 
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
 		$resp = $this->getDublinBusXML($xml_post_string);
 		$xml = new SimpleXMLElement($resp);
-
-		$xml = $xml->GetRoutesResponse->GetRoutesResult->Routes->asXML();
-		//echo($xml);
+		$arr = TransportHelper::XMLtoArray($xml);
 		$ret = array();
-		$xml = new SimpleXMLElement($xml);
-		foreach($xml->Route as $route) {
-			$item = array();
-			$rn = (string) $route->Number;			
-			$item["ori"] = TransportHelper::xmle($route->From);
-			$item["des"] = TransportHelper::xmle($route->Towards);
-			$ret[trim($rn)] = $item;
-		}
-		if(count($ret)>0) $cache->saveOutput($ret);
+		if(isset($arr['GetRoutesResponse'])) {
+			$routes = $arr['GetRoutesResponse']['GetRoutesResult']['Routes']['Route'];
+			foreach($routes as $route) {
+				$item = array();
+				$code = trim(strtolower($route['Number']));
+				if(!isset($route['From'])) continue;
+				if(!isset($route['Towards'])) continue;
+				$item["ori"] = $route['From'];
+				$item["des"] = $route['Towards'];
+				$ret[$code] = $item;
+			}
+			if(count($ret)>0) $cache->saveOutput($ret);
+		}		
 		return $ret;
 	}
 
@@ -364,13 +365,6 @@ class DublinBus implements TransportInterface {
 
 	}	
 
-	public function getRouteInfo($route) {
-		foreach($this->routes as $r) {
-			if($r["n"]==$route) return $r;
-		}
-		return array( "n" => $route, "ori" =>"", "des" => "" );
-	}
-
 	public function getStationInfo($stationcode,$filter) { // 3237
 		// xml post structure
 
@@ -394,30 +388,28 @@ class DublinBus implements TransportInterface {
         $arr = TransportHelper::XMLtoArray($xml);
         $ret = array();        
 
-        if(isset($arr['diffgr'])) {
+        if(isset($arr['diffgr'])) {        	
         	foreach($arr['diffgr']['DocumentElement']['StopData'] as $st) {
-	        	 $r = array();
-	        	 $status = $st['MonitoredVehicleJourney_InCongestion'];
-	        	 $route = $st['MonitoredVehicleJourney_LineRef'];
-	        	 $routeinfo = $this->getRouteInfo($route);
-	        	 $atime = $st['MonitoredCall_ExpectedArrivalTime'];
-	        	 $eta = strtotime($atime);
-	        	 $current_time = time();
-	        	 $r["tra"] = $route;
-	        	 $r["sta"] = $status == "false" ? "Normal" : "In congestion";
-	        	 $r['ori'] = $routeinfo["ori"];
-	        	 $r['des'] = $routeinfo["des"];
-	        	 $r["eta"] = date("H:i",$eta);
-	        	 $r["dir"] = $st['MonitoredVehicleJourney_DestinationName'];
-	        	 $due = round(abs($eta - $current_time) / 60,0);
-	        	 $toshow = $due."m";
-	        	 if($due>60) $toshow = floor($due/60).":".floor($due%60);
-	        	 $r["due"] = $toshow;
-	        	 $ret[] = $r;
+				$r = array();
+				$status = $st['MonitoredVehicleJourney_InCongestion'];
+				$route = strtolower($st['MonitoredVehicleJourney_LineRef']);	        	 
+				$atime = $st['MonitoredCall_ExpectedArrivalTime'];
+				$eta = strtotime($atime);
+				$current_time = time();
+				$r["tra"] = strtoupper($route);
+				$r["sta"] = $status == "false" ? "Normal" : "In congestion";
+				$r['ori'] = isset($this->routes[$route]) ? $this->routes[$route]['ori'] : "";
+				$r['des'] = isset($this->routes[$route]) ? $this->routes[$route]['des'] : "";
+				$r["eta"] = date("H:i",$eta);
+				$direction = $st['MonitoredVehicleJourney_DirectionRef']; // inbound
+				$r["dir"] = $st['MonitoredVehicleJourney_DestinationName'];
+				$due = round(abs($eta - $current_time) / 60,0);
+				$toshow = $due."m";
+				if($due>60) $toshow = floor($due/60).":".floor($due%60);
+				$r["due"] = $toshow;
+				$ret[] = $r;
 	        };
-        }
-
-        
+        }        
 
         return $ret;
 	}

@@ -15,13 +15,13 @@ $app->get('/', function () use ($app) {
 
 $app->get("/test", function() {
 	$d = new DublinBus();
-	//$info = $d->getStationInfo("3237",null);
+	$info = $d->getStationInfo("3237",null);
   // $info = $d->getRoutesByStopId("3237");
   //$info = $d->getStations(null);
   //$info = $d->getAllRoutes();
   //$dart = new IrishRail();
   //$info = $d->getStations(null);
-  $info = $d->getAllRoutes();
+  //$info = $d->getAllRoutes();
 
 	print_r($info);
 });
