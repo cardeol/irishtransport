@@ -14,11 +14,11 @@ EEE;
 		$this->stations = json_decode($stations,true);		
 	}
 
-	public function getStations($filter) {
+	public function getStations($filter = null) {
 		return TransportHelper::filter_data($this->stations,$filter);
 	}		
 
-    public function getStationInfo($stationcode, $filter) {
+    public function getStationInfo($stationcode, $filter = null) {
     	$url = str_replace("{stationcode}",$stationcode,self::SERVICE_URL);
     	$req = TransportHelper::getUrl($url); 	
     	$xml = simplexml_load_string($req);
@@ -29,7 +29,7 @@ EEE;
 	    	foreach ($xml->direction as $journey) {
 	    		$jattrib = $journey->attributes();
 	    		$direction = ((string) $jattrib['name'])=="Inbound"?"in":"out";    		
-	    		foreach($journey->tram as $xmltram) {
+	    		if($journey->tram) foreach($journey->tram as $xmltram) {
 	    			$tram = array();
 	    			$attrTram = $xmltram->attributes();
 	    			$due = (int) $attrTram['dueMins'];
@@ -43,9 +43,9 @@ EEE;
 	    		}
 	    	}    	
 	    	return TransportHelper::ResponseSuccess($message,TransportHelper::filter_data($forecast,$filter));
-	    } else {
-	    	return TransportHelper::ResponseError("Not info available");
-	    }
+	    } 
+	    return TransportHelper::ResponseError("Not info available");
+	    
     }	
 }
 

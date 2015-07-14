@@ -51,13 +51,17 @@ class IrishRail implements TransportInterface {
 		uksort($ret,function ($a,$b) { 
 			return strtolower($a)>strtolower($b); 
 		});
-		if(count($ret)>0) $cache->saveOutput($ret);
-		return $ret;
+		if(count($ret)>0) {
+			$output = TransportHelper::ResponseSuccess("ok",TransportHelper::filter_data($ret,$filter));
+			$cache->saveOutput($output);
+			return $output;
+		}
+		return TransportHelper::ResponseError("Not info available");
 	}
 
 	public function getStationInfo($stationcode,$filter) {
-		$service_url = "";
-		$url = str_replace("{stationcode}",$stationcode,self::SERVICE_URL);
+		$service_url = "http://api.irishrail.ie/realtime/realtime.asmx/getStationDataByCodeXML?StationCode={stationcode}";
+		$url = str_replace("{stationcode}",$stationcode,$service_url);
     	$req = TransportHelper::getUrl($url); 	
     	$xml = simplexml_load_string($req);
     	$arr = $xml->objStationData;

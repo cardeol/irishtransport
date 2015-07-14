@@ -24,7 +24,7 @@ class TransportHelper {
 	    curl_close($ch);	
 	    return $data;
 	}
-	public static function filter_data($arr, $filter) {
+	public static function filter_data($arr, $filter = null) {		
 		$filtered = array();
 		if($filter == NULL) return $arr;
 		$hasfilter = false;			
@@ -41,10 +41,10 @@ class TransportHelper {
 		return $filtered;	
 	}
 	public static function ResponseSuccess($message,$data) {
-		return json_encode(array("success" => 1, "data" => $data, "message" => $message ));
+		return array("success" => 1, "data" => $data, "message" => $message );
 	}
 	public static function ResponseError($message) {
-		return json_encode(array("success" => 0, "message" => $message ));
+		return array("success" => 0, "message" => $message );
 	}
 
 	

@@ -16,12 +16,11 @@ $app = new \Slim\Slim(array(
 ));
 
 function displayResponse($r, $cache = 0) {
-  if(!is_array($r)) $r = array();  
-  if(count($r)==0) $cache = 0;
-  if($cache>0) header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $cache)); 
+  if($r['success']==0) $cache = 0;
+  if($cache==0) header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $cache)); 
   header('Access-Control-Allow-Origin: *');  
   header("Content-Type: application/json");
-  echo count($r)>0 ? TransportHelper::ResponseSuccess("ok",$r) : TransportHelper::ResponseError("Error in Service");
+  echo json_encode($r);
 }
 
 $app->group('/dublinbus', function () use ($app) {
