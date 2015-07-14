@@ -41,10 +41,10 @@ class TransportHelper {
 		return $filtered;	
 	}
 	public static function ResponseSuccess($message,$data) {
-		return array("success" => 1, "data" => $data, "message" => $message );
+		return json_encode(array("success" => 1, "data" => $data, "message" => $message ));
 	}
 	public static function ResponseError($message) {
-		return array("success" => 0, "message" => $message );
+		return json_encode(array("success" => 0, "message" => $message ));
 	}
 
 	
