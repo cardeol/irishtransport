@@ -30,4 +30,5 @@ build/Release
 composer.phar
 ignore/
 vendor/
+cache/
 composer.lock

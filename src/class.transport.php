@@ -149,13 +149,13 @@ FFF;
 		const SERVICE_URL = 'http://api.irishrail.ie/realtime/realtime.asmx/getStationDataByCodeXML?StationCode={stationcode}';
 
 		function __construct() {			
-			$st = json_decode(self::STATION_DATA,true);			
+			/*$st = json_decode(self::STATION_DATA,true);			
 			$this->stations = array();
 			foreach($st as $key => $item) {
 				$item['cod'] = $key;
 				$this->stations[] = $item;
-			}
-
+			}*/
+			//$this->getStations();
 		}
 
 		function getETA($item) {
@@ -167,8 +167,36 @@ FFF;
 			return "";	
 		}
 
-		public function getStations($filter) {
+		/*public function getStations($filter) {
 			return TransportHelper::filter_data($this->stations,$filter);
+		}*/
+
+		public function getStations($filter = null) {
+			$url = "http://api.irishrail.ie/realtime/realtime.asmx/getAllStationsXML";
+			$html = TransportHelper::getUrl($url); 
+			$xml = simplexml_load_string($html);	
+			$arr = 	TransportHelper::XMLtoArray($xml);
+			$obj = $arr['objStation'];
+			$ret = array();
+			$added = array();
+			for($i=0; $i<count($obj); $i++) {
+				$item = $obj[$i];
+				if(strlen(trim($item['StationAlias']))>0) $item['StationDesc']=$item['StationAlias'];
+				$station = $item['StationDesc'];
+				$code = strtolower(trim($item['StationCode']));
+				if(!in_array($station,$added)) {
+					$ret[$code] = array (
+						"nam" => $item['StationDesc'],
+						"lat" => $item['StationLatitude'],
+						"lon" => $item['StationLongitude']
+						);
+					$added[] = $station;
+				};
+			}
+			uksort($ret,function ($a,$b) { 
+				return strtolower($a)>strtolower($b); 
+			});
+			return $ret;
 		}
 
 		public function getStationInfo($stationcode,$filter) {
@@ -302,7 +330,7 @@ class DublinBus implements TransportInterface {
 		$cache->setKey("gettALLBUSROUTES");
 		$cache->setTime(100000);	
 		$content = $cache->getCache();
-		if($content !== false) return "ok";
+		if($content !== false) return $content;
 
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
@@ -321,7 +349,7 @@ class DublinBus implements TransportInterface {
 			$item["des"] = TransportHelper::xmle($route->Towards);
 			$ret[] = $item;
 		}
-		if(count($ret)>0) $cache->saveOutput($content);
+		if(count($ret)>0) $cache->saveOutput($ret);
 		return $ret;
 	}
 
