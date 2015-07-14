@@ -1,6 +1,15 @@
 <?php
 
-include("config.php");
+
+date_default_timezone_set('Europe/Dublin');
+
+require('vendor/autoload.php');
+include('src/class.cache.php');
+include('src/class.transport.php');
+include('src/class.irishrail.php');
+include('src/class.dublinbus.php');
+include('src/class.luas.php');
+
 
 $app = new \Slim\Slim(array(
     'debug' => true
