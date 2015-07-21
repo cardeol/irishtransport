@@ -36,7 +36,7 @@ http://yourdomain/dublinbus/stationinfo/stopid
 http://yourdomain/luas/stationinfo/stationcode
 ```
 
-# License
+### License
 
 The content of this project itself is licensed under the
 [Creative Commons Attribution 3.0 license](http://creativecommons.org/licenses/by/3.0/us/deed.en_US),
