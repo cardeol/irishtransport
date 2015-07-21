@@ -6,6 +6,7 @@
 ### Requisites
 
 ```
+PHP > 5.x
 Composer
 Slim
 Apache (running a virtualhost)
