@@ -70,9 +70,12 @@ class DublinBus implements TransportInterface {
 				$ret[$code] = $item;
 			}
 		}		
-		if(count($ret)>0) $cache->saveOutput($ret);
-		return $ret;
-
+		if(count($ret)>0) {
+			$ret = TransportHelper::ResponseSuccess("ok",TransportHelper::filter_data($ret,$filter));
+			$cache->saveOutput($ret);
+			return $ret;
+		}
+		return TransportHelper::ResponseError("Not info available");
 	}
 
 	public function getAllRoutes() {
@@ -80,8 +83,7 @@ class DublinBus implements TransportInterface {
 		$cache->setKey("getAllBusRoutes");
 		$cache->setTime(2000000);	
 		$content = $cache->getCache();
-		//if($content !== false) return $content;
-
+		if($content !== false) return $content;
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
 		$resp = $this->getDublinBusXML($xml_post_string);
@@ -99,12 +101,20 @@ class DublinBus implements TransportInterface {
 				$item["des"] = $route['Towards'];
 				$ret[$code] = $item;
 			}
-			if(count($ret)>0) $cache->saveOutput($ret);
+			if(count($ret)>0) {
+				$dt = TransportHelper::ResponseSuccess("ok",TransportHelper::filter_data($ret,$filter));
+				$cache->saveOutput($dt);
+				return $dt;
+			}			
 		}		
-		return $ret;
+		return TransportHelper::ResponseError("Not info available");
 	}
 
 	public function getRoutesByStopId($stopid) {
+		$cache = new AppCache();
+		$cache->setKey("getRoutesByStopId_".$stopid);
+		$cache->setTime(100000);
+		if($content !== false) return $content;
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 		   <soapenv:Header/>
 		   <soapenv:Body>
@@ -122,14 +132,22 @@ class DublinBus implements TransportInterface {
 			foreach($routes as $route) {
 				$ret[] = $route['Number'];
 			}
+			if(count($ret)>0) {
+				$dt = TransportHelper::ResponseSuccess("ok",TransportHelper::filter_data($ret,$filter));
+				$cache->saveOutput($dt);
+				return $dt;
+			}		
 		}
-		return $ret;
+		return TransportHelper::ResponseError("Not info available");
 
 	}	
 
-	public function getStationInfo($stationcode,$filter) { // 3237
+	public function getStationInfo($stationcode,$filter = null) { // 3237
 		// xml post structure
-
+		$cache = new AppCache();
+		$cache->setKey("getStationInfo.".$stationcode.".".json_encode($filter));
+		$cache->setTime(15);
+		if($content !== false) return $content;
         $xml_post_string = 
        '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 		   <soapenv:Header/>
@@ -172,8 +190,12 @@ class DublinBus implements TransportInterface {
 				$ret[] = $r;
 	        };
         }        
-
-        return $ret;
+        if(count($ret)>0) {
+			$dt = TransportHelper::ResponseSuccess("ok",TransportHelper::filter_data($ret,$filter));
+			$cache->saveOutput($dt);
+			return $dt;
+		}		
+        return TransportHelper::ResponseError("Not info available");
 	}
 
 }
