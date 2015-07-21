@@ -19,10 +19,8 @@ class DublinBus implements TransportInterface {
                     "Cache-Control: no-cache",
                     "Pragma: no-cache",
                     "Content-length: ".strlen($xml_post_string)
-                    );
-		
+                    );		
         
-        // PHP cURL  for https connection with auth
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -34,10 +32,8 @@ class DublinBus implements TransportInterface {
         curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_post_string); // the SOAP request
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-        // converting
         $result = curl_exec($ch); 
         curl_close($ch);
-        // converting
         $response1 = str_replace("<soap:Body>","",$result);
         $response2 = str_replace("</soap:Body>","",$response1);
         return $response2;
