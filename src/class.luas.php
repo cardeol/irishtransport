@@ -15,7 +15,7 @@ EEE;
 	}
 
 	public function getStations($filter = null) {
-		return TransportHelper::filter_data($this->stations,$filter);
+		return TransportHelper::filter_data($this->stations,$filter = null);
 	}		
 
     public function getStationInfo($stationcode, $filter = null) {

@@ -45,7 +45,7 @@ class DublinBus implements TransportInterface {
 
 	public function getStations($filter = null) {
 		$cache = new AppCache();
-		$cache->setKey("getAllBusStops");
+		$cache->setKey("getAllBusStops.".json_encode($filter));
 		$cache->setTime(2000000);	
 		$content = $cache->getCache();
 		if($content !== false) return $content;
@@ -80,7 +80,7 @@ class DublinBus implements TransportInterface {
 
 	public function getAllRoutes() {
 		$cache = new AppCache();
-		$cache->setKey("getAllBusRoutes");
+		$cache->setKey("getAllBusRoutes*");
 		$cache->setTime(2000000);	
 		$content = $cache->getCache();
 		if($content !== false) return $content;
