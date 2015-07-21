@@ -1,6 +1,6 @@
 # Irish Transport
 
-<h2>My intention is to provide a common interface for the transportation in Ireland in PHP ussing better techniques to avoid the overload of the original API's.</h2>
+<p>My intention is to provide a common interface for the transportation in Ireland in PHP ussing better techniques to avoid the overload of the original API's.</p>
 
 
 ### Requisites
