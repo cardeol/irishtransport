@@ -12,7 +12,7 @@ RewriteRule ^ index.php [QSA,L]
 ## GZIP Compression
 
 <IfModule mod_deflate.c>
-    <filesMatch "\.(js|css|html|php)$">
+    <filesMatch "\.(json|js|css|html|php)$">
         SetOutputFilter DEFLATE
     </filesMatch>
 </IfModule>
