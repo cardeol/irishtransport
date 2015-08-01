@@ -1,6 +1,6 @@
 # Irish Transport
 
-<p>My intention is to provide a common interface for the public transport system in Ireland using better techniques to avoid the overload of the original API's. At the moment it has support for DublinBus, Luas and IrishRail.</p>
+<p>My intention is to provide a common interface for the public transport system in Ireland using better techniques to avoid the overload of the original API's. Currently has support for DublinBus, Luas and IrishRail.</p>
 
 
 ### Requisites
@@ -15,7 +15,7 @@ Apache (running a virtualhost)
 ### Installation
 
 ```
-git clone blablabla...
+git clone https://github.com/cardeol/irishtransport/
 curl -sS https://getcomposer.org/installer | php
 composer install
 ```
