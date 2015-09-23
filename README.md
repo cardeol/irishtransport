@@ -23,7 +23,7 @@ composer install
 ### Running Tests with PHPunit
 linux: ./runtests.sh
 
-### API (Routes powered by slim)
+### API (Routes powered by Slim Framework)
 
 ```
 Station and geo info:
