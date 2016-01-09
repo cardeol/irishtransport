@@ -23,6 +23,10 @@ function displayResponse($r, $cache = 0) {
   echo json_encode($r);
 }
 
+$app->get("/test", function() {
+    die("HELLO");
+});
+
 $app->group('/dublinbus', function () use ($app) {
 
     $service = new TransportService(TransportServiceType::TRANSPORT_DUBLINBUS);
@@ -32,7 +36,7 @@ $app->group('/dublinbus', function () use ($app) {
         displayResponse($response,10);
     });
 
-    $app->get('/getstations(.json)', function () use ($service) {                
+    $app->get('/stations(.json)', function () use ($service) {                
         $response = $service->getStations();
         displayResponse($response,(3600*24*30));
     });
@@ -47,7 +51,7 @@ $app->group('/irishrail', function () use ($app) {
         displayResponse($response,10);
     });
 
-    $app->get('/getstations(.json)', function () use ($service) {                
+    $app->get('/stations(.json)', function () use ($service) {                
         $response = $service->getStations();
         displayResponse($response,(3600*24*30));
     });
@@ -62,7 +66,7 @@ $app->group('/luas', function () use ($app) {
         displayResponse($response,10);
     });
 
-    $app->get('/getstations(.json)', function () use ($service) {                
+    $app->get('/stations(.json)', function () use ($service) {                
         $response = $service->getStations();
         displayResponse($response,(3600*24*30));
     });

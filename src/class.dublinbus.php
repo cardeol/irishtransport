@@ -51,9 +51,15 @@ class DublinBus implements TransportInterface {
 			      <dub:GetAllDestinations/>
 			   </soapenv:Body>
 			</soapenv:Envelope>';
-		$resp = $this->getDublinBusXML($xml_post_string);
-		$xml = new SimpleXMLElement($resp);
-		$arr = TransportHelper::XMLtoArray($xml);
+		try {
+			$resp = $this->getDublinBusXML($xml_post_string);
+			print_r($resp);
+			die();
+			$xml = new SimpleXMLElement($resp);
+			$arr = TransportHelper::XMLtoArray($xml);			
+		} catch(Exception $e) {
+			return TransportHelper::ResponseError("Error in service");	
+		}
 		$ret = array();
 		if(isset($arr['GetAllDestinationsResponse'])) {
 			$destinations = $arr['GetAllDestinationsResponse']['GetAllDestinationsResult']['Destinations']['Destination'];
@@ -82,9 +88,13 @@ class DublinBus implements TransportInterface {
 		if($content !== false) return $content;
 		$xml_post_string = '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:dub="http://dublinbus.ie/">
 			   <soapenv:Header/><soapenv:Body><dub:GetRoutes><dub:filter></dub:filter></dub:GetRoutes></soapenv:Body></soapenv:Envelope>';
-		$resp = $this->getDublinBusXML($xml_post_string);
-		$xml = new SimpleXMLElement($resp);
-		$arr = TransportHelper::XMLtoArray($xml);
+		try {
+			$resp = $this->getDublinBusXML($xml_post_string);	
+			$xml = new SimpleXMLElement($resp);
+			$arr = TransportHelper::XMLtoArray($xml);
+		} catch(Exception $e) {
+			return TransportHelper::ResponseError("Error in Service");
+		}		
 		$ret = array();
 		if(isset($arr['GetRoutesResponse'])) {
 			$routes = $arr['GetRoutesResponse']['GetRoutesResult']['Routes']['Route'];
