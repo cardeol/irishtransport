@@ -24,8 +24,7 @@ function displayResponse($r, $cache = 0) {
   if($cache==0) header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $cache)); 
    if (isset($_SERVER['HTTP_ORIGIN'])) {
         header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-        header('Access-Control-Allow-Credentials: true');
-        header('Access-Control-Max-Age: 86400');    // cache for 1 day
+        header('Access-Control-Allow-Credentials: true');        
     }
     // Access-Control headers are received during OPTIONS requests
     if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
