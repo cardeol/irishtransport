@@ -27,9 +27,9 @@ linux: ./runtests.sh
 
 ```
 Station and geo info:
-http://yourdomain/irishrail/getstations
-http://yourdomain/dublinbus/getstations
-http://yourdomain/luas/getstations
+http://yourdomain/irishrail/stations
+http://yourdomain/dublinbus/stations
+http://yourdomain/luas/stations
 
 Train/Tram/Businfo:
 http://yourdomain/irishrail/stationinfo/stationcode
