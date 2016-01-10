@@ -81,7 +81,9 @@ class IrishRail implements TransportInterface {
 					'las' => (string) $item->Lastlocation,
 					'due' => (string) $item->Duein,
 					'eta' => (string) $eta,
-					'dir' => (string) $item->Direction=="Northbound"?"in":"out"
+					'dir' => (string) $item->Direction=="Northbound"?"in":"out",
+					'typ' => (string) $item->Traintype,
+					'loc' => (string) $item->Locationtype
 				  );
 			 }
 		}
