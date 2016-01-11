@@ -67,12 +67,12 @@ $app->group('/dublinbus', function () use ($app) {
 });
 
 $app->group('/irishrail', function () use ($app) {
-    $app->get("/news", function() {
+    $app->get("/news(.json)", function() {
         $query = array(
-          "q" => "@IrishRail"
+          "q" => "IrishRail"
         );     
         $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
-        $results = $connection->get('search/tweets', $query);
+        $results = $connection->get('statuses/irishrail', array("count" => 25, "exclude_replies" => true));
         displayResponse($results,20);
     });
 
