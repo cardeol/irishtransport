@@ -58,7 +58,7 @@ $app->get("/news", function() {
     );
      
     $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
-    $results = $toa->get('search/tweets', $query);
+    $results = $connection->get('search/tweets', $query);
 
     displayResponse($results,20);
 
