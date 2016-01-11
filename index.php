@@ -7,8 +7,6 @@ ini_set('display_errors', 1);
 
 date_default_timezone_set('Europe/Dublin');
 
-
-
 require('vendor/autoload.php');
 include('config.php'); // optional settings
 include('src/class.cache.php');
@@ -44,12 +42,26 @@ function displayResponse($r, $cache = 0) {
     header("Cache-Control: post-check=0, pre-check=0", false);
     header("Pragma: no-cache");
     header('Content-Type: application/json'); 
-  echo json_encode($r);
+    echo json_encode($r);
 }
 
 
 $app->get("/test", function() {
-    echo("HELLO");
+   
+    
+});
+
+$app->get("/news", function() {
+
+    $query = array(
+      "q" => "@IrishRail"
+    );
+     
+    $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
+    $results = $toa->get('search/tweets', $query);
+
+    displayResponse($results,20);
+
 });
 
 $app->group('/dublinbus', function () use ($app) {
