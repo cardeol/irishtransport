@@ -22,7 +22,7 @@ $app = new \Slim\Slim(array(
 ));
 
 function displayResponse($r, $cache = 0) {
-  if($r['success']==0) $cache = 0;
+  if(is_array($r)) if($r['success']==0) $cache = 0;  
   if($cache==0) header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $cache)); 
    if (isset($_SERVER['HTTP_ORIGIN'])) {
         header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
