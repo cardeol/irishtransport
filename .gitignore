@@ -32,3 +32,4 @@ ignore/
 vendor/
 cache/
 composer.lock
+config.php
