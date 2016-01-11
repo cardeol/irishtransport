@@ -72,7 +72,7 @@ $app->group('/irishrail', function () use ($app) {
           "q" => "IrishRail"
         );     
         $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
-        $results = $connection->get('statuses/user_timeline', array("screen_name" => "irishrail", "count" => 25, "exclude_replies" => true));
+        $results = $connection->get('statuses/user_timeline', array("user_id" => "irishrail", "count" => 25, "exclude_replies" => true));
         displayResponse($results,20);
     });
 
