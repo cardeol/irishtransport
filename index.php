@@ -51,18 +51,6 @@ $app->get("/test", function() {
     
 });
 
-$app->get("/news", function() {
-
-    $query = array(
-      "q" => "@IrishRail"
-    );
-     
-    $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
-    $results = $connection->get('search/tweets', $query);
-
-    displayResponse($results,20);
-
-});
 
 $app->group('/dublinbus', function () use ($app) {
     $app->get('/stationinfo/:stopid(.json)', function ($stopid)  {        
@@ -79,6 +67,15 @@ $app->group('/dublinbus', function () use ($app) {
 });
 
 $app->group('/irishrail', function () use ($app) {
+    $app->get("/news", function() {
+        $query = array(
+          "q" => "@IrishRail"
+        );     
+        $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
+        $results = $connection->get('search/tweets', $query);
+        displayResponse($results,20);
+    });
+
     $app->get('/stationinfo/:stopid(.json)', function ($stopid) {        
         $service = new TransportService(TransportServiceType::TRANSPORT_IRISHRAIL);
         $response = $service->getStationInfo(strtolower($stopid));
