@@ -4,16 +4,20 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 
+
 date_default_timezone_set('Europe/Dublin');
 
 
 
 require('vendor/autoload.php');
+include('config.php'); // optional settings
 include('src/class.cache.php');
 include('src/class.transport.php');
 include('src/class.irishrail.php');
 include('src/class.dublinbus.php');
 include('src/class.luas.php');
+
+use Abraham\TwitterOAuth\TwitterOAuth;
 
 $app = new \Slim\Slim(array(
     'debug' => true
