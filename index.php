@@ -16,6 +16,7 @@ include('src/class.dublinbus.php');
 include('src/class.luas.php');
 
 use Abraham\TwitterOAuth\TwitterOAuth;
+use Swagger\Swagger;
 
 $app = new \Slim\Slim(array(
     'debug' => true
@@ -47,9 +48,20 @@ function displayResponse($r, $cache = 0) {
 
 
 $app->get("/test", function() {
-   
+   echo("TESTING");
     
 });
+
+/**
+ * @SWG\Info(title="My First API", version="0.1")
+ */
+
+/**
+ * @SWG\Get(
+ *     path="/irishrail/stationinfo/{id}",
+ *     @SWG\Response(response="200", description="An example resource")
+ * )
+ */
 
 
 $app->group('/dublinbus', function () use ($app) {
@@ -104,6 +116,12 @@ $app->group('/luas', function () use ($app) {
     });
 });
 
+
+$app->get("/doc", function() {    
+    $swagger = \Swagger\scan(__FILE__);
+    header('Content-Type: application/json');
+    echo $swagger; 
+});
 
 
 $app->run();

@@ -40,7 +40,8 @@ class IrishRail implements TransportInterface {
 			$station = $item['StationDesc'];
 			$code = strtolower(trim($item['StationCode']));
 			if(!in_array($station,$added)) {
-				$ret[$code] = array (
+				$ret[] = array (				
+					"id" => $code,
 					"nam" => $item['StationDesc'],
 					"lat" => $item['StationLatitude'],
 					"lon" => $item['StationLongitude']
