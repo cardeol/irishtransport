@@ -1,9 +1,12 @@
 <?php
 
-define('CONSUMER_KEY', 'your_consumer_key');
-define('CONSUMER_SECRET', 'your_consumer_secret');
-define('ACCESS_TOKEN', 'your_access_token');
-define('ACCESS_TOKEN_SECRET', 'your_access_token_secret');
+define('CONSUMER_KEY', 'H7ty39a3hcuBidRaQStuq9t1o');
+define('CONSUMER_SECRET', 
+'PAWVElj0aQ4roVzwA8cx1qq6VwrGRD7ReS2HIBPUWLBkESi3qw');
+define('ACCESS_TOKEN', 
+'75875997-4MjNwCcUdZgdRaCH7ieiq8YCk3GWeMPHjerY6DTNo');
+define('ACCESS_TOKEN_SECRET', 
+'JjEr28QSIqvkTUfYiLQccg0XEFRbz7TXfBipoV5t3grbQ');
  
 
  ?>
